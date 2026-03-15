@@ -2,7 +2,7 @@
 
 import client from '@/lib/api/client';
 import { getAuthHeaders } from '@/lib/api/server-client';
-import { components } from '@/lib/api/v1';
+import { components } from '@onrepeat/types';
 
 export async function getPost(postId: string) {
   const post_id = await postId;

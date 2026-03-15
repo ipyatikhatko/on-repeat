@@ -8,7 +8,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { MessageCircle, Heart, Share2 } from 'lucide-react';
 import Image from 'next/image';
-import { components } from '@/lib/api/v1';
+import { components } from '@onrepeat/types';
 import { PostContent } from './post-content';
 import { useRouter } from 'next/navigation';
 

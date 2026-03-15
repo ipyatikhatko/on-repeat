@@ -1,11 +1,32 @@
 # OnRepeat Music
 
-Monorepo for OnRepeat Music application.
+A modern monorepo for the OnRepeat Music application, built with pnpm workspaces.
 
-## Structure
+## 📁 Project Structure
 
-- `backend/` - NestJS backend API
-- `web/` - Next.js frontend application
+```
+onrepeat-music/
+├── apps/
+│   ├── backend/          # NestJS backend API
+│   └── web/              # Next.js frontend application
+├── packages/
+│   └── types/            # Shared TypeScript types (OpenAPI generated)
+├── package.json          # Root workspace configuration
+├── pnpm-workspace.yaml   # Workspace definition
+└── pnpm-lock.yaml        # Lock file (shared across all packages)
+```
+
+### Apps
+
+- **`apps/backend/`** - NestJS REST API with Prisma ORM
+- **`apps/web/`** - Next.js 15 frontend with React 19
+
+### Packages
+
+- **`packages/types/`** - Shared TypeScript types package
+  - Auto-generated OpenAPI types from backend Swagger spec
+  - Domain-specific shared types
+  - Used by web app for type-safe API calls
 
 ## Prerequisites
 
@@ -82,6 +103,27 @@ pnpm db:setup
 pnpm prisma:generate
 ```
 
+### OpenAPI Types
+
+The `@onrepeat/types` package automatically generates TypeScript types from the backend's Swagger/OpenAPI specification.
+
+```bash
+# Generate OpenAPI types from backend (waits for backend if not running)
+pnpm types:generate
+
+# Watch backend changes and auto-regenerate types
+pnpm types:watch
+```
+
+**How it works:**
+1. Backend exposes Swagger at `http://localhost:3000/swagger/json`
+2. Types package fetches the OpenAPI spec
+3. Generates TypeScript types using `openapi-typescript`
+4. Types are exported from `@onrepeat/types` package
+5. Web app imports types for type-safe API calls
+
+**Note**: The backend must be running for type generation to work. The types are automatically generated when you run `pnpm dev` (if backend starts first).
+
 ## Available Scripts
 
 ### Development
@@ -134,6 +176,13 @@ pnpm prisma:generate
 |--------|-------------|
 | `pnpm prisma:generate` | Generate Prisma Client |
 
+### Types
+
+| Script | Description |
+|--------|-------------|
+| `pnpm types:generate` | Generate OpenAPI types from backend (waits for backend if not running) |
+| `pnpm types:watch` | Watch backend changes and auto-regenerate OpenAPI types |
+
 ### Package-specific scripts
 
 Use `pnpm --filter <package-name> <script>` to run scripts in specific packages:
@@ -147,28 +196,68 @@ pnpm --filter @onrepeat/backend migrate:dev
 # Web specific
 pnpm --filter @onrepeat/web dev
 pnpm --filter @onrepeat/web build
+
+# Types package
+pnpm --filter @onrepeat/types generate
 ```
 
 ## Environment Variables
 
-- **Backend**: Create `backend/.env` file (see `backend/.env.example` if available)
-- **Web**: Create `web/.env.local` file (see `web/.env.example` if available)
+- **Backend**: Create `apps/backend/.env` file (see `apps/backend/.env.example` if available)
+- **Web**: Create `apps/web/.env.local` file (see `apps/web/.env.example` if available)
 
-## Workspace
+## 🏗️ Monorepo Architecture
 
-This is a pnpm workspace monorepo. All dependencies are managed from the root, and packages can reference each other using the workspace protocol:
+This is a **pnpm workspace monorepo** using the following structure:
+
+- **Apps** (`apps/*`) - Deployable applications (backend, web)
+- **Packages** (`packages/*`) - Shared libraries and utilities (types)
+
+### How It Works
+
+1. **Dependency Management**: All dependencies are installed at the root and shared via symlinks
+2. **Workspace Protocol**: Packages can reference each other using `workspace:*`
+3. **Isolated node_modules**: Each package has its own `node_modules` with symlinks to the root store
+4. **Single Lock File**: One `pnpm-lock.yaml` manages all dependencies
+
+### Using Workspace Packages
+
+Packages can depend on each other using the workspace protocol:
 
 ```json
 {
   "dependencies": {
-    "@onrepeat/backend": "workspace:*"
+    "@onrepeat/types": "workspace:*"
   }
 }
 ```
 
-## Tech Stack
+**Current Usage:**
+- `apps/web` depends on `packages/types` for OpenAPI-generated types
 
-- **Backend**: NestJS, Prisma, PostgreSQL
-- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
-- **Package Manager**: pnpm
+## 🛠️ Tech Stack
+
+### Backend (`apps/backend/`)
+- **Framework**: NestJS
+- **ORM**: Prisma
+- **Database**: PostgreSQL
+- **API Docs**: Swagger/OpenAPI
+- **Authentication**: JWT, Google OAuth
+
+### Frontend (`apps/web/`)
+- **Framework**: Next.js 15 (App Router)
+- **UI Library**: React 19
+- **Styling**: Tailwind CSS
+- **Components**: Radix UI, Shadcn UI
+- **State Management**: Zustand
+- **API Client**: openapi-fetch (type-safe with generated types)
+
+### Shared (`packages/types/`)
+- **Type Generation**: openapi-typescript
+- **Source**: Backend Swagger/OpenAPI spec
+
+### Tooling
+- **Package Manager**: pnpm 8+
 - **Monorepo**: pnpm workspaces
+- **Task Runner**: concurrently (for running multiple services)
+- **Language**: TypeScript

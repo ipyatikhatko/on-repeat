@@ -1,7 +1,7 @@
 'use client';
 
 import { PostCard } from './post-card';
-import { components } from '@/lib/api/v1';
+import { components } from '@onrepeat/types';
 
 interface PostsListProps {
   posts: components['schemas']['PostResponseDto'][];

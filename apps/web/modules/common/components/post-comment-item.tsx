@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import React from 'react';
-import { components } from '@/lib/api/v1';
+import { components } from '@onrepeat/types';
 
 export default function PostCommentItem({
   comment,
