@@ -72,6 +72,10 @@ export class FeedService {
   }
 
   async getPersonalFeed(userId: number, page = 1, limit = 20) {
+    // Ensure page and limit are numbers (query params come as strings)
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+
     const following = await this.prisma.follow.findMany({
       where: { followerId: userId },
       select: { followingId: true },
@@ -105,12 +109,16 @@ export class FeedService {
         },
       },
       orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: Number(limit),
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
     });
   }
 
   async getPopularFeed(page = 1, limit = 20) {
+    // Ensure page and limit are numbers (query params come as strings)
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+
     return this.prisma.post.findMany({
       where: {
         status: PostStatus.PUBLISHED,
@@ -139,8 +147,8 @@ export class FeedService {
         { comments: { _count: 'desc' } },
         { createdAt: 'desc' },
       ],
-      skip: (page - 1) * limit,
-      take: Number(limit),
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
     });
   }
 
@@ -214,6 +222,10 @@ export class FeedService {
       limit = 20,
     } = query;
 
+    // Ensure page and limit are numbers (query params come as strings)
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+
     // Build where clause
     const where: any = {
       authorId: userId,
@@ -263,8 +275,8 @@ export class FeedService {
         },
       },
       orderBy,
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (pageNum - 1) * limitNum,
+      take: limitNum,
     });
   }
 }
