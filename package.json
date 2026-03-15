@@ -1,0 +1,37 @@
+{
+  "name": "onrepeat-music",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OnRepeat Music - Monorepo",
+  "scripts": {
+    "dev": "concurrently -n backend,web -c blue,green \"pnpm --filter backend start:dev\" \"pnpm --filter web dev\"",
+    "dev:web": "pnpm --filter web dev",
+    "dev:backend": "pnpm --filter backend start:dev",
+    "build": "pnpm --filter backend build && pnpm --filter web build",
+    "build:backend": "pnpm --filter backend build",
+    "build:web": "pnpm --filter web build",
+    "start": "concurrently -n backend,web -c blue,green \"pnpm --filter backend start:prod\" \"pnpm --filter web start\"",
+    "start:web": "pnpm --filter web start",
+    "start:backend": "pnpm --filter backend start:prod",
+    "lint": "pnpm --filter backend lint && pnpm --filter web lint",
+    "lint:backend": "pnpm --filter backend lint",
+    "lint:web": "pnpm --filter web lint",
+    "test": "pnpm --filter backend test",
+    "test:backend": "pnpm --filter backend test",
+    "format": "pnpm --filter backend format",
+    "db:migrate": "pnpm --filter backend migrate",
+    "db:migrate:dev": "pnpm --filter backend migrate:dev",
+    "db:seed": "pnpm --filter backend seed",
+    "db:setup": "pnpm --filter backend db:setup",
+    "prisma:generate": "pnpm --filter backend prisma:generate"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.0.0",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
