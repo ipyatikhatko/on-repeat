@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                     Int            @id @default(autoincrement())
+  email                  String?        @unique
+  password               String?
+  username               String?        @unique
+  isVerified             Boolean        @default(false)
+  emailVerificationToken String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  refreshToken           String?
+  oauthAccounts          OAuthAccount[]
+
+  // New fields for feed functionality
+  posts     Post[] // User's posts
+  likes     Like[] // Posts liked by user
+  comments  Comment[] // User's comments
+  followers Follow[]  @relation("Following")
+  following Follow[]  @relation("Followers")
+  profile   Profile? // One-to-one relation with profile
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  content   String
+  tags      String[]
+  status    PostStatus @default(PUBLISHED)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  authorId  Int
+  author    User      @relation(fields: [authorId], references: [id])
+  likes     Like[]
+  comments  Comment[]
+
+  // Optional: Add media attachments
+  mediaUrl String?
+
+  // For tracking engagement
+  viewCount  Int @default(0)
+  shareCount Int @default(0)
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([tags])
+  @@index([status])
+  @@index([authorId, status])
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  postId    Int?
+  commentId Int?
+  userId    Int
+  createdAt DateTime @default(now())
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@unique([commentId, userId])
+  @@index([userId])
+  @@index([postId])
+  @@index([commentId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  postId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes     Like[]
+  parentId  Int?     // Optional parent comment ID
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int // User who is following
+  followingId Int // User being followed
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId]) // Prevent duplicate follows
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model Profile {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @unique
+  bio       String?
+  avatarUrl String?
+  coverUrl  String?
+  location  String?
+  website   String?
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Keeping existing OAuth model
+model OAuthAccount {
+  id         Int    @id @default(autoincrement())
+  provider   String
+  providerId String
+  userId     Int
+  user       User   @relation(fields: [userId], references: [id])
+}
